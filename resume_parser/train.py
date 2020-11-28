@@ -48,7 +48,7 @@ import spacy
 ################### Train Spacy NER.###########
 def train_spacy():
 
-    TRAIN_DATA = convert_dataturks_to_spacy("./data/traindata.json")
+    TRAIN_DATA = convert_dataturks_to_spacy("../data/traindata.json")
     nlp = spacy.blank('en')  # create blank Language class
     # create the built-in pipeline components and add them to the pipeline
     # nlp.create_pipe works for built-ins that are registered with spaCy

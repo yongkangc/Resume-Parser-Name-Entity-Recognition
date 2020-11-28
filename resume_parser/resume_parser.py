@@ -1,3 +1,8 @@
+"""
+Parses Resume and returns skill,education,work experience
+"""
+
+
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import spacy
@@ -29,7 +34,7 @@ def extract_skills(text):
     '''
     nlp_text, noun_chunks = tokenize(text)
     tokens = [token.text for token in nlp_text if not token.is_stop]
-    data = pd.read_csv(os.path.join(os.path.dirname(__file__), './data/skills.csv')) 
+    data = pd.read_csv(os.path.join(os.path.dirname(__file__), '../data/skills.csv')) 
     skills = list(data.columns.values)
     skillset = []
     # check for one-grams
