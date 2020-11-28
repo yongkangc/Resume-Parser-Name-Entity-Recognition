@@ -11,4 +11,8 @@ Name Entity Recognition Model is trained with 200 Datasets.
 ```
 env/bin/activate
 pip install -r requirements.txt
+
+# Run the program
+replace the resume file in main.py with the desired file path
+python -m main.py
 ```

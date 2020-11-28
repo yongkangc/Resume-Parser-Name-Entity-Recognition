@@ -5,45 +5,85 @@ import pickle
 import random
 import sys, fitz
 import docx
+import docx2txt
+import os
 
 def parse_resume(file_path):
     text= get_text(file_path)
     segment = classify_resume(text)
     return segment
 
+def tokenize(text):
+    nlp = spacy.load('en_core_web_sm')
+    nlp_text = nlp(text)
+    noun_chunks = nlp_text.noun_chunks
+    return nlp_text,noun_chunks
+
+def extract_skills(text):
+    '''
+    Helper function to extract skills from spacy nlp text
+
+    :param nlp_text: object of `spacy.tokens.doc.Doc`
+    :param noun_chunks: noun chunks extracted from nlp text
+    :return: list of skills extracted
+    '''
+    nlp_text, noun_chunks = tokenize(text)
+    tokens = [token.text for token in nlp_text if not token.is_stop]
+    data = pd.read_csv(os.path.join(os.path.dirname(__file__), './data/skills.csv')) 
+    skills = list(data.columns.values)
+    skillset = []
+    # check for one-grams
+    for token in tokens:
+        if token.lower() in skills:
+            skillset.append(token)
+    
+    # check for bi-grams and tri-grams
+    for token in noun_chunks:
+        token = token.text.lower().strip()
+        if token in skills:
+            skillset.append(token)
+    return [i.capitalize() for i in set([i.lower() for i in skillset])]
+
+
 #Extract text from DOCX
 def get_text_doc(file_path):
-    doc = docx.Document(file_path)
-    text = ""
-    for para in doc.paragraphs:
-        text += para.text
-    print(text)
-    return text
+    temp = docx2txt.process(file_path)
+    text = [line.replace('\t', ' ') for line in temp.split('\n') if line]
+    return ' '.join(text)
+    
 
 # Get text from pdf
 def get_text_pdf(file_path):
+    '''
+    Helper function to extract the plain text from .pdf files
+
+    :param pdf_path: path to PDF file to be extracted
+    :return: iterator of string of extracted text
+    '''
     doc = fitz.open(file_path)
     text = ""
     for page in doc:
         text = text + str(page.getText())
+    print(txt)
     txt = " ".join(text.split('\n'))
     return txt
 
 
 def get_text(file_path):
-    """Get text from pdf or word"""
-    print(file_path[-3:])
-    if file_path[-3:]=="pdf":
+    '''
+    Wrapper function to detect the file extension and call text extraction function accordingly
+
+    :param file_path: path of file of which text is to be extracted
+    :param extension: extension of file `file_name`
+    '''
+    ext = os.path.splitext(file_path)[1]
+    if ext==".pdf":
         txt = get_text_pdf(file_path)
         
-    elif file_path[-3:]=="doc" or file_path[-4:]=="docx":
+    elif ext==".doc" or ext==".docx":
         txt=get_text_doc(file_path)
-        # doc = docx.Document(file_path)
-        # text = ""
+        print(txt)
 
-        # for line in doc.paragraphs:
-        #     text += line.text
-        # txt = " ".join(text.split('\n'))
     return txt
 
 def classify_resume(txt):
@@ -53,9 +93,13 @@ def classify_resume(txt):
     nlp_model = spacy.load('nlp_ner_model')
     # Applying the model
     doc = nlp_model(txt)
+    skills = extract_skills(txt)
     segment = ""
     for ent in doc.ents:
         segment += (f'{ent.label_.upper():{30}}- {ent.text}\n')
+    segment += f"{'SKILLS':{30}}- {','.join(skills)}\n"
     return segment
 
-print(parse_resume("data/Chang_Ker_Fui.docx"))
+
+if __name__ == "__main__":
+    print(parse_resume("data/Chang_Ker_Fui.docx"))
