@@ -18,7 +18,7 @@ Match Resume with Job Description and obtain a similarity score
 env/bin/activate
 pip install -r requirements.txt
 ```
-## Extracting key information out of resume
+## Extracting name, skills, education from resume
 ```
 # Extract Key information out of resume
 # replace the resume file in main.py with the desired file path
